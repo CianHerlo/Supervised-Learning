@@ -25,20 +25,26 @@ def separate_labels(df):
     return label_dfs_dict
 
 
+def display_vector_per_category(label_data):
+    for label, data in label_data.items():
+        sample_image_vector = data.iloc[0, 1:].values
+        sample_label = data.iloc[0, 0]
+
+        # Reshape the image vector to a 28x28 format
+        sample_image = sample_image_vector.reshape(28, 28)
+
+        # Display the image
+        plt.imshow(sample_image, cmap='gray')
+        plt.title(f'Label: {sample_label}')
+        plt.show()
+
+
 def main():
     df = load_data(CSV_FILE_NAME)
+    # Task 1
     label_data = separate_labels(df)
-    first_label = label_data[0]
-    sample_image_vector = first_label.iloc[0, 1:].values  # Assuming label 0 for tshirt/top
-    sample_label = first_label.iloc[0, 0]  # Assuming label is in the first column
-
-    # Reshape the image vector to a 28x28 format
-    sample_image = sample_image_vector.reshape(28, 28)
-
-    # Display the image
-    plt.imshow(sample_image, cmap='gray')
-    plt.title(f'Label: {sample_label}')
-    plt.show()
+    display_vector_per_category(label_data)
+    # Task 2
 
 
 if __name__ == "__main__":
