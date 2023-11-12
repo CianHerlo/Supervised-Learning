@@ -38,11 +38,16 @@ def display_vector_per_category(label_data):
         plt.show()
 
 
-def k_fold_cross_validation(df, initial_train_size=8000, increase_per_fold=10000, initial_test_size=4000, increase_test_per_fold=2000):
+def k_fold_cross_validation(df):
+    initial_train_size = 8000   # Initial training size
+    increase_per_fold = 10000   # Increase training size per fold
+    initial_test_size = 4000    # Initial test size
+    increase_test_per_fold = 2000   # Increase test size per fold
     vectors = df.iloc[:, 1:]  # Vector images
     categories = df.iloc[:, 0]   # Categories
     current_train_size = initial_train_size
     current_test_size = initial_test_size
+
     kf = KFold(n_splits=5, shuffle=True, random_state=42)
     for fold, (train_index, test_index) in enumerate(kf.split(vectors, categories), 1):  # Split data into folds
         train_index = train_index[:current_train_size]
