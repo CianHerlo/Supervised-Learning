@@ -45,6 +45,9 @@ def display_vector_per_category(label_data):
 
 
 def k_fold_cross_validation(df, classifier_type='perceptron'):
+    data_sizes = []
+    train_times = []
+    eval_times = []
     all_elapsed_train_times = []
     all_elapsed_eval_times = []
     all_elapsed_pred_times = []
@@ -106,6 +109,11 @@ def k_fold_cross_validation(df, classifier_type='perceptron'):
         elapsed_confusion_matrix_time = end_confusion_matrix_time - start_confusion_matrix_time  # Generate confusion matrix duration
         all_elapsed_confusion_matrix_times.append(elapsed_confusion_matrix_time)  # Add duration to array
 
+        # Collect data for plotting
+        data_sizes.append(current_train_size)
+        train_times.append(elapsed_train_time)
+        eval_times.append(elapsed_eval_time)
+
         # Printing
         print_fold_results(fold, current_train_size, test_index, scores, elapsed_train_time, elapsed_eval_time,
                            elapsed_pred_time, elapsed_confusion_matrix_time, eval_accuracy)
@@ -117,6 +125,16 @@ def k_fold_cross_validation(df, classifier_type='perceptron'):
     # Printing statistics from total folds
     print_overall_results(all_elapsed_train_times, all_elapsed_eval_times, all_elapsed_pred_times,
                           all_elapsed_confusion_matrix_times, all_eval_accuracies)
+
+    # Plotting
+    plt.figure(figsize=(10, 5))  # Graph size = 1,000px x 500px
+    plt.plot(data_sizes, train_times, label='Training Duration')  # Data plotting with legend title for line
+    plt.plot(data_sizes, eval_times, label='Evaluation Duration')  # Data plotting with legend title for line
+    plt.xlabel('Data Size (vectors)')  # X axis Label
+    plt.ylabel('Time (seconds)')  # Y axis label
+    plt.title(f'Relationship Between Data Size and Run Duration for {classifier_type.capitalize()} Classifier')  # Graph title
+    plt.legend()  # Show legend for line titles
+    plt.show()  # Show graph
 
 
 def print_fold_results(fold, current_train_size, test_index, scores, elapsed_train_time, elapsed_eval_time,
@@ -133,36 +151,52 @@ def print_fold_results(fold, current_train_size, test_index, scores, elapsed_tra
 def print_overall_results(all_elapsed_train_times, all_elapsed_eval_times, all_elapsed_pred_times,
                           all_elapsed_confusion_matrix_times, all_eval_accuracies):
     print("\nOverall Results:")
+    print(f"{'='*50}")
+    print(f"{'-' * 10}Training{'-' * 10}")
     print(f"Min Training Time: {min(all_elapsed_train_times):.2f} seconds")
     print(f"Max Training Time: {max(all_elapsed_train_times):.2f} seconds")
     print(f"Average Training Time: {np.mean(all_elapsed_train_times):.2f} seconds")
-
+    print(f"{'-' * 10}Evaluation{'-' * 10}")
     print(f"Min Evaluation Time: {min(all_elapsed_eval_times):.2f} seconds")
     print(f"Max Evaluation Time: {max(all_elapsed_eval_times):.2f} seconds")
     print(f"Average Evaluation Time: {np.mean(all_elapsed_eval_times):.2f} seconds")
-
+    print(f"{'-' * 10}Prediction{'-' * 10}")
     print(f"Min Prediction Time: {min(all_elapsed_pred_times):.4f} seconds")
     print(f"Max Prediction Time: {max(all_elapsed_pred_times):.4f} seconds")
     print(f"Average Prediction Time: {np.mean(all_elapsed_pred_times):.4f} seconds")
-
+    print(f"{'-' * 10}Confusion Matrix{'-' * 10}")
     print(f"Min Confusion Matrix Time: {min(all_elapsed_confusion_matrix_times):.4f} seconds")
     print(f"Max Confusion Matrix Time: {max(all_elapsed_confusion_matrix_times):.4f} seconds")
     print(f"Average Confusion Matrix Time: {np.mean(all_elapsed_confusion_matrix_times):.4f} seconds")
-
+    print(f"{'-' * 10}Accuracy{'-' * 10}")
     print(f"Min Prediction Accuracy: {min(all_eval_accuracies):.4f}")
     print(f"Max Prediction Accuracy: {max(all_eval_accuracies):.4f}")
-    print(f"Average Prediction Accuracy: {np.mean(all_eval_accuracies):.4f}")
+    print(f"Average Prediction Accuracy: {np.mean(all_eval_accuracies):.4f}\n")
 
 
 def main():
+    print(f"{'_'*20}  Prep  {'_'*20}")
     df = load_data(CSV_FILE_NAME)
     # Task 1
+    print(f"{'_' * 20} Task 1 {'_' * 20}")
     label_data = separate_labels(df)
     # display_vector_per_category(label_data)
     # Task 2
-    k_fold_cross_validation(df)
+    print(f"{'_' * 20} Task 2 {'_' * 20}")
+    # k_fold_cross_validation(df) - Task 2 should only develop function to be used
     # Task 3
+    print(f"{'_' * 20} Task 3 {'_' * 20}")
     # k_fold_cross_validation(df, "perceptron")
+    # Task 4
+    print(f"{'_' * 20} Task 4 {'_' * 20}")
+    # k_fold_cross_validation(df, "decision_tree")
+    # Task 5
+    print(f"{'_' * 20} Task 5 {'_' * 20}")
+    # k_fold_cross_validation(df, "k_nearest_neighbor")
+    # Task 6
+    print(f"{'_' * 20} Task 6 {'_' * 20}")
+    # Task 7
+    print(f"{'_' * 20} Task 7 {'_' * 20}")
 
 
 if __name__ == "__main__":
