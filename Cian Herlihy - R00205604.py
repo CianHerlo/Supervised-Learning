@@ -12,6 +12,7 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.model_selection import cross_val_score
 from sklearn.metrics import confusion_matrix
+from sklearn.svm import SVC
 import time
 
 CSV_FILE_NAME = "fashion-mnist_train.csv"
@@ -44,7 +45,7 @@ def display_vector_per_category(label_data):
         plt.show()
 
 
-def k_fold_cross_validation(df, classifier_type='perceptron'):
+def k_fold_cross_validation(df, classifier_type='perceptron', k=5):
     data_sizes = []
     train_times = []
     eval_times = []
@@ -67,7 +68,7 @@ def k_fold_cross_validation(df, classifier_type='perceptron'):
     elif classifier_type == 'decision_tree':
         classifier = DecisionTreeClassifier()
     elif classifier_type == 'k_nearest_neighbor':
-        classifier = KNeighborsClassifier()
+        classifier = KNeighborsClassifier(n_neighbors=k)
     else:
         print(f"Invalid classifier type: {classifier_type}")
         exit()
@@ -136,6 +137,16 @@ def k_fold_cross_validation(df, classifier_type='perceptron'):
     plt.legend()  # Show legend for line titles
     plt.show()  # Show graph
 
+    # Return accuracy for k nearest neighbour classifier
+    if classifier_type == "k_nearest_neighbor":
+        return np.mean(all_eval_accuracies)
+
+
+def find_best_k(accuracies):  # Find best value for k nearest neighbour classifier
+    best_k = accuracies.index(max(accuracies)) + 1
+    best_accuracy = max(accuracies)
+    print(f"Best k: {best_k}, Best Accuracy: {best_accuracy:.4f}")
+
 
 def print_fold_results(fold, current_train_size, test_index, scores, elapsed_train_time, elapsed_eval_time,
                        elapsed_pred_time, elapsed_confusion_matrix_time, eval_accuracy):
@@ -192,7 +203,11 @@ def main():
     # k_fold_cross_validation(df, "decision_tree")
     # Task 5
     print(f"{'_' * 20} Task 5 {'_' * 20}")
-    # k_fold_cross_validation(df, "k_nearest_neighbor")
+    # all_k_accuracies = []
+    # for i in range(1, 11):
+    #     accuracy = k_fold_cross_validation(df, "k_nearest_neighbor", i)
+    #     all_k_accuracies.append(accuracy)
+    # find_best_k(all_k_accuracies)
     # Task 6
     print(f"{'_' * 20} Task 6 {'_' * 20}")
     # Task 7
