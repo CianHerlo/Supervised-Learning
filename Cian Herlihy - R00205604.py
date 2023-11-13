@@ -13,6 +13,7 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.model_selection import cross_val_score
 from sklearn.metrics import confusion_matrix
 from sklearn.svm import SVC
+from sklearn.model_selection import GridSearchCV
 import time
 
 CSV_FILE_NAME = "fashion-mnist_train.csv"
@@ -45,7 +46,8 @@ def display_vector_per_category(label_data):
         plt.show()
 
 
-def k_fold_cross_validation(df, classifier_type='perceptron', k=5):
+def k_fold_cross_validation(df, classifier_type='perceptron', k=5, gamma=1, initial_train_size=8000,
+                            increase_per_fold=10000, initial_test_size=4000, increase_test_per_fold=2000):
     data_sizes = []
     train_times = []
     eval_times = []
@@ -54,10 +56,6 @@ def k_fold_cross_validation(df, classifier_type='perceptron', k=5):
     all_elapsed_pred_times = []
     all_elapsed_confusion_matrix_times = []
     all_eval_accuracies = []
-    initial_train_size = 8000  # Initial training size
-    increase_per_fold = 10000  # Increase training size per fold
-    initial_test_size = 4000  # Initial test size
-    increase_test_per_fold = 2000  # Increase test size per fold
     vectors = df.iloc[:, 1:]  # Vector images
     categories = df.iloc[:, 0]  # Categories
     current_train_size = initial_train_size  # Initial size of train size before folds
@@ -69,6 +67,8 @@ def k_fold_cross_validation(df, classifier_type='perceptron', k=5):
         classifier = DecisionTreeClassifier()
     elif classifier_type == 'k_nearest_neighbor':
         classifier = KNeighborsClassifier(n_neighbors=k)
+    elif classifier_type == 'support_vector_machine':
+        classifier = SVC(kernel='rbf', gamma=gamma)
     else:
         print(f"Invalid classifier type: {classifier_type}")
         exit()
@@ -133,19 +133,34 @@ def k_fold_cross_validation(df, classifier_type='perceptron', k=5):
     plt.plot(data_sizes, eval_times, label='Evaluation Duration')  # Data plotting with legend title for line
     plt.xlabel('Data Size (vectors)')  # X axis Label
     plt.ylabel('Time (seconds)')  # Y axis label
-    plt.title(f'Relationship Between Data Size and Run Duration for {classifier_type.capitalize()} Classifier')  # Graph title
+    plt.title(
+        f'Relationship Between Data Size and Run Duration for {classifier_type.capitalize()} Classifier')  # Graph title
     plt.legend()  # Show legend for line titles
     plt.show()  # Show graph
 
-    # Return accuracy for k nearest neighbour classifier
-    if classifier_type == "k_nearest_neighbor":
-        return np.mean(all_eval_accuracies)
+    # Create a dictionary to store mean values
+    mean_results = {
+        'mean_train_time': np.mean(all_elapsed_train_times),
+        'mean_eval_time': np.mean(all_elapsed_eval_times),
+        'mean_pred_time': np.mean(all_elapsed_pred_times),
+        'mean_confusion_matrix_time': np.mean(all_elapsed_confusion_matrix_times),
+        'mean_accuracy': np.mean(all_eval_accuracies)
+    }
+    return mean_results
 
 
 def find_best_k(accuracies):  # Find best value for k nearest neighbour classifier
-    best_k = accuracies.index(max(accuracies)) + 1
-    best_accuracy = max(accuracies)
-    print(f"Best k: {best_k}, Best Accuracy: {best_accuracy:.4f}")
+    best_k = max(accuracies, key=lambda k: accuracies[k]["mean_accuracy"])
+    best_accuracy = accuracies[best_k]["mean_accuracy"]
+    print(f"Best Mean k: {best_k}, Best Mean Accuracy: {best_accuracy:.4f}")
+    return accuracies[best_k]
+
+
+def find_best_gamma(gamma_accuracies):
+    best_gamma = max(gamma_accuracies, key=lambda gamma: gamma_accuracies[gamma]["mean_accuracy"])
+    best_accuracy = gamma_accuracies[best_gamma]["mean_accuracy"]
+    print(f"Best Mean gamma: {best_gamma}, Best Mean Accuracy: {best_accuracy:.4f}\n")
+    return gamma_accuracies[best_gamma]
 
 
 def print_fold_results(fold, current_train_size, test_index, scores, elapsed_train_time, elapsed_eval_time,
@@ -161,8 +176,7 @@ def print_fold_results(fold, current_train_size, test_index, scores, elapsed_tra
 
 def print_overall_results(all_elapsed_train_times, all_elapsed_eval_times, all_elapsed_pred_times,
                           all_elapsed_confusion_matrix_times, all_eval_accuracies):
-    print("\nOverall Results:")
-    print(f"{'='*50}")
+    print("\nOverall Results")
     print(f"{'-' * 10}Training{'-' * 10}")
     print(f"Min Training Time: {min(all_elapsed_train_times):.2f} seconds")
     print(f"Max Training Time: {max(all_elapsed_train_times):.2f} seconds")
@@ -185,33 +199,86 @@ def print_overall_results(all_elapsed_train_times, all_elapsed_eval_times, all_e
     print(f"Average Prediction Accuracy: {np.mean(all_eval_accuracies):.4f}\n")
 
 
+def final_comparison(mean_perceptron_results, mean_decision_tree_results, best_mean_k_nearest_neighbor_results,
+                     best_mean_support_vector_machine_results):
+    headers = ["Classifier", "Train", "Eval", "Predict",
+               "Confusion Matrix", "Accuracy"]
+    classifiers = [
+        ("Perceptron", mean_perceptron_results),
+        ("Decision Tree", mean_decision_tree_results),
+        ("K Nearest Neighbor", best_mean_k_nearest_neighbor_results),
+        ("Support Vector Machine", best_mean_support_vector_machine_results)
+    ]
+
+    # Display headers
+    print("{:<30}".format(headers[0]), end="")
+    for header in headers[1:]:
+        print("{:<20}".format(header), end="")
+    print()  # Move to the next line
+    for classifier_name, result in classifiers:
+        print("{:<30}".format(classifier_name), end="")
+        print("{:<20}".format(f"{result['mean_train_time']:.2f}s"), end="")
+        print("{:<20}".format(f"{result['mean_eval_time']:.2f}s"), end="")
+        print("{:<20}".format(f"{result['mean_pred_time']:.4f}s"), end="")
+        print("{:<20}".format(f"{result['mean_confusion_matrix_time']:.4f}s"), end="")
+
+        # Convert accuracy to percentage and print
+        accuracy_percentage = result['mean_accuracy'] * 100
+        print("{:<20}".format(f"{accuracy_percentage:.2f}%"))
+
+
 def main():
-    print(f"{'_'*20}  Prep  {'_'*20}")
+    print(f"{'_' * 20}  Prep  {'_' * 20}")
     df = load_data(CSV_FILE_NAME)
     # Task 1
     print(f"{'_' * 20} Task 1 {'_' * 20}")
-    label_data = separate_labels(df)
+    # label_data = separate_labels(df)
     # display_vector_per_category(label_data)
     # Task 2
     print(f"{'_' * 20} Task 2 {'_' * 20}")
     # k_fold_cross_validation(df) - Task 2 should only develop function to be used
     # Task 3
     print(f"{'_' * 20} Task 3 {'_' * 20}")
-    # k_fold_cross_validation(df, "perceptron")
+    mean_perceptron_results = k_fold_cross_validation(df, "perceptron",
+                                                                      initial_train_size=1000,
+                                                                      increase_per_fold=1000,
+                                                                      initial_test_size=1000,
+                                                                      increase_test_per_fold=1000)
     # Task 4
     print(f"{'_' * 20} Task 4 {'_' * 20}")
-    # k_fold_cross_validation(df, "decision_tree")
+    mean_decision_tree_results = k_fold_cross_validation(df, "decision_tree",
+                                                                      initial_train_size=1000,
+                                                                      increase_per_fold=1000,
+                                                                      initial_test_size=1000,
+                                                                      increase_test_per_fold=1000)
     # Task 5
     print(f"{'_' * 20} Task 5 {'_' * 20}")
-    # all_k_accuracies = []
-    # for i in range(1, 11):
-    #     accuracy = k_fold_cross_validation(df, "k_nearest_neighbor", i)
-    #     all_k_accuracies.append(accuracy)
-    # find_best_k(all_k_accuracies)
+    all_k_accuracies = {}
+    for k_val in range(1, 4):  # 4 was the best k value
+        mean_k_nearest_neighbor_results = k_fold_cross_validation(df, "k_nearest_neighbor", k=k_val,
+                                                                      initial_train_size=1000,
+                                                                      increase_per_fold=1000,
+                                                                      initial_test_size=1000,
+                                                                      increase_test_per_fold=1000)
+        all_k_accuracies[k_val] = mean_k_nearest_neighbor_results
+    best_mean_k_nearest_neighbor_results = find_best_k(all_k_accuracies)
     # Task 6
     print(f"{'_' * 20} Task 6 {'_' * 20}")
+    all_gamma_accuracies = {}
+    for gamma_val in range(10, 31, 10):
+        mean_support_vector_machine_results = k_fold_cross_validation(df,
+                                                                      "support_vector_machine",
+                                                                      gamma=gamma_val,
+                                                                      initial_train_size=100,
+                                                                      increase_per_fold=100,
+                                                                      initial_test_size=100,
+                                                                      increase_test_per_fold=100)
+        all_gamma_accuracies[gamma_val] = mean_support_vector_machine_results
+    best_mean_support_vector_machine_results = find_best_gamma(all_gamma_accuracies)
     # Task 7
     print(f"{'_' * 20} Task 7 {'_' * 20}")
+    final_comparison(mean_perceptron_results, mean_decision_tree_results, best_mean_k_nearest_neighbor_results,
+                     best_mean_support_vector_machine_results)
 
 
 if __name__ == "__main__":
