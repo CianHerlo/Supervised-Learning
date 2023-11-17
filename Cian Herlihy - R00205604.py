@@ -266,6 +266,50 @@ def main():
     print(f"{'_' * 20} Task 7 {'_' * 20}")
     final_comparison(mean_perceptron_results, mean_decision_tree_results, best_mean_k_nearest_neighbor_results,
                      best_mean_support_vector_machine_results)
+    """
+    Upon doing all these tasks and trying out these classifiers, I discovered some pro's and con's to the models in my opinion.
+    Perceptron was a much faster model and allowed me to use all the images available within a reasonable time frame and
+    yielded a high accuracy. I also like the simplicity of the model which for example you do not need extra parameters
+    to use the classifier. This classifier is great for easily split data into sections so it can apply a weight to
+    the images to predict. Given that this project consisted of data that was easily separated into 10 different sections
+    0-9 categories then it enabled this model to perform very well.
+    
+    Decision Tree classifier was another easy to use model by importing the correct classifier and implement into my 
+    code with no additional data needed. As the name suggests it uses a tree structure with each branch representing a 
+    decision choice. The recursive functions it uses made it a faster model to work with, however, my pc did sometimes 
+    struggle and would give me weird readings like being 10x slower the Perceptron for example. This model is also known 
+    for struggling with unseen data which does make the whole predictability of it kind of null, therefore I wouldn't have
+    chose this model even with the high accuracies it yielded for me.
+    
+    K-Nearest Neighbours was another classifier like Perceptron that was very fast for training on my pc and found it 
+    quite often to be faster. It does, however, add complexity in implementing it over Perceptron such as more parameters.
+    This model was my most accurate classifier and also fastest meaning it is in my opinion and experience in this project,
+    the best fit for this data. It is a highly flexible model and predicts based on data points distances and how a
+    data point being closer to another will impact heavily on what it predicts. This does make the prediction times slower.
+    The parameters you can adjust may yield better results too and in my testing, 4 was the best value for k out of 1-5.
+    
+    Finally the Support Vector Machine classifier. I struggled with this classifier and getting it to work for me. It 
+    has given me extremely low accuracies and is by far the worst for timing. So bad that I had to lower the training
+    sample size and evaluation size dramatically. I rarely got into the double digit percentages although probably due 
+    to my smaller sample sizes but the model with the same sample size as the other 3 would take well over 30 minutes
+    for 1 of 5 folds. I then wanted to test more gamma ranges which meant an extra 5 folds for each gamma range. I tried
+    gamma ranges from 0.1-1.0, I tried gamma ranges 1-10 and even tried gamma ranges 10-100. All resulting in extremely
+    slow training times and evaluations. I spent countless hours trying to make this work and would love to see a working
+    example of this being done because I could not figure out what I was doing wrong. I am sorry but I am open to 
+    being corrected and educated in doing so. The model itself and how it works I even find harder to explain in its
+    understanding but from my experience now, I find it very difficult to work with.
+    
+    Overall, K-Nearest Neighbour is my recommended classifier with a mean average score of 86.79% in my latest run. 
+    The mean times are brought down by the scaled up sample rates but if you take the table I print off it was 
+    16.33 seconds for training, 5.43 seconds for evaluation and sub 1 seconds for prediction and generating of 
+    confusion matrix's combined.
+    
+    Ranking:
+    1. K-Nearest Neighbour
+    2. Perceptron
+    3. Decision Tree
+    4. Support Vector Machine (By Default)
+    """
 
 
 if __name__ == "__main__":
